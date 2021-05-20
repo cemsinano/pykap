@@ -15,14 +15,14 @@ pip install pykap
 #### To list all of the BIST Companies
 
 ```python
-from pykap import bist_company_list
+from pykap.bist_company_list import bist_company_list
 bist_company_list()
 ```
 
 #### Get General Info for all of the BIST Companies
 
 ```python
-from pykap import get_bist_companies
+from pykap.get_bist_companies import get_bist_companies
 get_bist_companies() # default output format is pandas df (can be json or dict, as well)
 ```
 
@@ -30,7 +30,7 @@ get_bist_companies() # default output format is pandas df (can be json or dict, 
 #### Get General Info for a specific company
 
 ```python
-from pykap import get_general_info
+from pykap.get_general_info import get_general_info
 get_general_info(tick='AKBNK')
 ```
 

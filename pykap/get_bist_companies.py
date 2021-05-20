@@ -21,6 +21,7 @@ for firm in all_firms:
     
 pd.DataFrame.from_dict(firms_dict,orient = 'index') 
 '''
+
 def get_bist_companies(output_format = 'pandas_df'):
     """
     output_format: 'pandas_df' or 'json' or 'dict'
@@ -61,16 +62,16 @@ def get_bist_companies(output_format = 'pandas_df'):
     #    print("An exception occurred")
 
 
-def bist_company_list():
-    c_dict = get_bist_companies(output_format='dict')
-    #print(c_dict)
-    ticker_list = [c['ticker'] for c in c_dict]
-    return ticker_list
-
-def get_general_info(tick):
-    tick_list = bist_company_list() # save it don't call again and again...
-    c_dict = get_bist_companies(output_format='dict')
-    if (tick in tick_list):
-       return list(filter(lambda d: d['ticker'] in [tick], c_dict))[0]
+# def bist_company_list():
+#     c_dict = get_bist_companies(output_format='dict')
+#     #print(c_dict)
+#     ticker_list = [c['ticker'] for c in c_dict]
+#     return ticker_list
+#
+# def get_general_info(tick):
+#     tick_list = bist_company_list() # save it don't call again and again...
+#     c_dict = get_bist_companies(output_format='dict')
+#     if (tick in tick_list):
+#        return list(filter(lambda d: d['ticker'] in [tick], c_dict))[0]
 
 
