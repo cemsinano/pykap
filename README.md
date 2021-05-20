@@ -12,7 +12,7 @@ pip install pykap
 
 ### Usage
 
-#### Listing all of the BIST Companies
+#### To list all of the BIST Companies
 
 ```python
 from pykap import bist_company_list
@@ -33,3 +33,12 @@ get_bist_companies() # default output format is pandas df (can be json or dict, 
 from pykap import get_general_info
 get_general_info(tick='AKBNK')
 ```
+
+
+#### BISTCompany Class:
+
+```python
+from pykap.bist import BISTCompany
+comp = BISTCompany(ticker='BIMAS') # initialize a BISTCompany object
+```
+When A BISTCompany object is initialized, some general information attributes (`ticker`, `name`, `summary_page`, `city`, `auditor`) get filled for this company.

@@ -1,1 +1,1 @@
-from .Company import *
+from .BISTCompany import *

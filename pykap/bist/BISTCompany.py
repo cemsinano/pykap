@@ -2,7 +2,7 @@
 
 import pykap.get_bist_companies as gbc
 
-class Company(object):
+class BISTCompany(object):
     """
     BIST Company class to store company related fields.
     """
@@ -15,3 +15,6 @@ class Company(object):
         self.summary_page = general_info['summary_page']
         self.city = general_info['city']
         self.auditor = general_info['auditor']
+
+    def get_financial_report(self):
+        return 'bla'
