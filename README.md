@@ -8,3 +8,28 @@ KAP (Public Disclosure Platform) Documentation Wrapper for Capital Markets Board
 ```sh
 pip install pykap
 ```
+
+
+### Usage
+
+#### Listing all of the BIST Companies
+
+```python
+from pykap import bist_company_list
+bist_company_list()
+```
+
+#### Get General Info for all of the BIST Companies
+
+```python
+from pykap import get_bist_companies
+get_bist_companies() # default output format is pandas df (can be json or dict, as well)
+```
+
+
+#### Get General Info for a specific company
+
+```python
+from pykap import get_general_info
+get_general_info(tick='AKBNK')
+```
