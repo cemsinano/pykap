@@ -24,7 +24,28 @@ class BISTCompany(object):
     def get_financial_report(self, ):
         return 'bla'
 
-    def get_expected_disclosures(self, count=5):
+    def get_expected_disclosure_list(self, count=5):
         data = {"mkkMemberOidList": [self.company_id], "count": str(count)}
         response = requests.post(url="https://www.kap.org.tr/tr/api/memberExpectedDisclosure", json=data)
         return json.loads(response.text)
+
+    def get_historical_disclosure_list(self, fromdate = "2020-05-21", todate="2021-05-21",disclosure_type="FR"):
+        data = {
+            "fromDate": fromdate,
+            "toDate": todate,
+            "year": "", "prd": "",
+            "term": "", "ruleType": "",
+            "bdkReview": "",
+            "disclosureClass": disclosure_type,
+            "index": "", "market": "",
+            "isLate": "", "subjectList": [],
+            "mkkMemberOidList": [self.company_id],
+            "inactiveMkkMemberOidList": [],
+            "bdkMemberOidList": [],
+            "mainSector": "", "sector": "",
+            "subSector": "", "memberType": "IGS",
+            "fromSrc": "N", "srcCategory": "",
+            "discIndex": []}
+        response = requests.post(url="https://www.kap.org.tr/tr/api/memberDisclosureQuery", json=data)
+        return json.loads(response.text)
+

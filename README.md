@@ -55,5 +55,11 @@ When A BISTCompany object is initialized, some general information attributes (`
 ##### Get Expected Disclosures List:
 
 ```python
-comp.get_expected_disclosures(count=10)
+comp.get_expected_disclosure_list(count=10)
+```
+
+##### Get Historical Disclosures List:
+
+```python
+comp.get_historical_disclosure_list(fromdate = "2020-05-21", todate="2021-05-21",disclosure_type="FR")
 ```
