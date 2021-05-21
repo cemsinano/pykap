@@ -23,8 +23,12 @@ bist_company_list()
 
 ```python
 from pykap.get_bist_companies import get_bist_companies
-get_bist_companies() # default output format is pandas df (can be json or dict, as well)
+get_bist_companies(online = False, output_format = 'pandas_df')
 ```
+Default output format is pandas df (can be json or dict, as well). 
+
+`online` mode enables to get the most up-to-date company list from KAP's website. 
+However, it takes time to parse. It is suggested to use `online=False`, unless otherwise is necessary.  
 
 
 #### Get General Info for a specific company
@@ -42,3 +46,9 @@ from pykap.bist import BISTCompany
 comp = BISTCompany(ticker='BIMAS') # initialize a BISTCompany object
 ```
 When A BISTCompany object is initialized, some general information attributes (`ticker`, `name`, `summary_page`, `city`, `auditor`) get filled for this company.
+
+##### Get Expected Disclosures List:
+
+```python
+comp.get_expected_disclosures(count=10)
+```
