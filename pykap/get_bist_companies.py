@@ -2,6 +2,23 @@ from bs4 import BeautifulSoup
 import requests
 import json
 import pandas as pd
+import pkgutil
+
+
+def get_bist_companies(online = False,output_format = 'pandas_df', **kwargs):
+    if(online==False):
+        bist_list = pkgutil.get_data(__name__, "data/bist_companies_general.json")
+        if(output_format=='pandas_df'):
+            return pd.read_json(bist_list)
+        else:
+            data = json.loads(bist_list)
+            if(output_format=='dict'):
+                return data
+            elif(output_format=='json'):
+                return json.dumps(data, ensure_ascii=False, indent=4)
+    elif(online==True):
+        return _get_bist_companies(**kwargs)
+
 
 
 '''
@@ -22,7 +39,7 @@ for firm in all_firms:
 pd.DataFrame.from_dict(firms_dict,orient = 'index') 
 '''
 
-def get_bist_companies(output_format = 'pandas_df', add_company_id = False, local_jsoncopy = False):
+def _get_bist_companies(output_format = 'pandas_df', add_company_id = False, local_jsoncopy = False):
     """
     output_format: 'pandas_df' or 'json' or 'dict'
     BIST
@@ -62,7 +79,7 @@ def get_bist_companies(output_format = 'pandas_df', add_company_id = False, loca
 
     if (output_format == 'pandas_df'):
         output_companies=pd.read_json(companies_json)
-        return output_companiesgit
+        return output_companies
     elif (output_format == 'json'):
         return companies_json
     elif (output_format == 'dict'):

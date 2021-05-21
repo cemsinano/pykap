@@ -25,6 +25,7 @@ setuptools.setup(
         "Operating System :: OS Independent",
     ],
     #package_dir={"": "pykap"},
+    package_data={'pykap': ['data/*.json']},
     packages=setuptools.find_packages(exclude=["tests"]),
     python_requires=">=3.6",
 )
