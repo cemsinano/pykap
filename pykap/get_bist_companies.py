@@ -57,12 +57,12 @@ def get_bist_companies(output_format = 'pandas_df', add_company_id = False, loca
     #try:
     if local_jsoncopy:
         with open('./bist_companies_general.json', 'w', encoding='utf-8') as f:
-            json.dump(companies_json, f, ensure_ascii=False, indent=4)
+            json.dump(companies_dict['companies'], f, ensure_ascii=False, indent=4)
 
 
     if (output_format == 'pandas_df'):
         output_companies=pd.read_json(companies_json)
-        return output_companies
+        return output_companiesgit
     elif (output_format == 'json'):
         return companies_json
     elif (output_format == 'dict'):
