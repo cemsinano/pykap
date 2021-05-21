@@ -16,6 +16,7 @@ class BISTCompany(object):
         self.summary_page = general_info['summary_page']
         self.city = general_info['city']
         self.auditor = general_info['auditor']
+        self.company_id = general_info['company_id']
         self.financial_reports = dict()
 
     def get_financial_report(self, ):

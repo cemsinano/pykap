@@ -22,7 +22,7 @@ for firm in all_firms:
 pd.DataFrame.from_dict(firms_dict,orient = 'index') 
 '''
 
-def get_bist_companies(output_format = 'pandas_df'):
+def get_bist_companies(output_format = 'pandas_df', add_company_id = False, local_jsoncopy = False):
     """
     output_format: 'pandas_df' or 'json' or 'dict'
     BIST
@@ -46,9 +46,19 @@ def get_bist_companies(output_format = 'pandas_df'):
         temp_dic['city'] = city
         auditor = firm.select('div.comp-cell._11.vtable a.vcell')[0].text
         temp_dic['auditor'] = auditor
+
+        if add_company_id:
+            company_id = get_mkkMemberOid(surl=summary_page)
+            temp_dic['company_id'] = company_id
+
         companies_dict['companies'].append(temp_dic)
+
     companies_json = json.dumps(companies_dict['companies'],indent = 4, ensure_ascii=False)
     #try:
+    if local_jsoncopy:
+        with open('./bist_companies_general.json', 'w', encoding='utf-8') as f:
+            json.dump(companies_json, f, ensure_ascii=False, indent=4)
+
 
     if (output_format == 'pandas_df'):
         output_companies=pd.read_json(companies_json)
@@ -60,6 +70,14 @@ def get_bist_companies(output_format = 'pandas_df'):
 
     #except:
     #    print("An exception occurred")
+
+def get_mkkMemberOid(surl):
+    g = requests.get(url=surl)
+    soup = BeautifulSoup(g.text, 'html5lib')
+    cid = soup.select('img.comp-logo')[0]['src'].split('/')[-1]
+    return cid
+
+
 
 
 # def bist_company_list():

@@ -2,3 +2,4 @@
 pykap/__pycache__/
 pykap/bist/__pycache__/
 pykap/investment_funds/__pycache__/
+.DS_Store
