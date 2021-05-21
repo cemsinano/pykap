@@ -6,7 +6,12 @@ KAP (Public Disclosure Platform) Documentation Wrapper for Capital Markets Board
 ### Installation
 
 ```sh
-pip install pykap
+pip install pykap # currently not an option
+```
+
+From the repository:
+```sh
+pip install git+https://gitlab.com/cemsina/PyKap.git
 ```
 
 
