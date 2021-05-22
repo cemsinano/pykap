@@ -66,13 +66,14 @@ class BISTCompany(object):
             fin_reports[period]['year'] = disclosure['year']
             fin_reports[period]['term'] = disclosure['ruleTypeTerm']
             fin_reports[period]['disc_ind'] = disclosure['disclosureIndex']
-            self.announcement_no = fin_reports[period]['disc_ind']
+            self.__announcement_no = fin_reports[period]['disc_ind']
             fin_reports[period]['results'] = self._get_announcement()
         self.financial_reports = fin_reports
+        self.__announcement_no = None
         return fin_reports
 
     def _get_announcement(self, announcement_no ='846388' ,lang='tr'):
-        anurl = "https://www.kap.org.tr/"+ lang +"/Bildirim/" + str(self.announcement_no)
+        anurl = "https://www.kap.org.tr/"+ lang +"/Bildirim/" + str(self.__announcement_no)
 
         r = requests.get(anurl)
         #s = BeautifulSoup(r.text, 'html5lib')
