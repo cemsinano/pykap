@@ -7,6 +7,7 @@ import json
 from bs4 import BeautifulSoup
 import regex as re
 import pandas as pd
+from datetime import datetime,timedelta
 
 
 
@@ -35,10 +36,10 @@ class BISTCompany(object):
         response = requests.post(url="https://www.kap.org.tr/tr/api/memberExpectedDisclosure", json=data)
         return json.loads(response.text)
 
-    def get_historical_disclosure_list(self, fromdate = "2020-05-21", todate="2021-05-21",disclosure_type="FR", subject ="4028328c594bfdca01594c0af9aa0057"):
+    def get_historical_disclosure_list(self, fromdate = datetime.today().date() - timedelta(days = 365), todate=datetime.today().date(),disclosure_type="FR", subject ="4028328c594bfdca01594c0af9aa0057"):
         data = {
-            "fromDate": fromdate,
-            "toDate": todate,
+            "fromDate": str(fromdate),
+            "toDate": str(todate),
             "year": "", "prd": "",
             "term": "", "ruleType": "",
             "bdkReview": "",

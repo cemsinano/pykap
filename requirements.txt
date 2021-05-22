@@ -1,3 +1,4 @@
 setuptools
 bs4
 pandas
+datetime
