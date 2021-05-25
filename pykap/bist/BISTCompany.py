@@ -28,8 +28,6 @@ class BISTCompany(object):
         self.company_id = general_info['company_id']
         self.financial_reports = dict()
 
-    def get_financial_report(self, ):
-        return 'bla'
 
     def get_expected_disclosure_list(self, count=5):
         data = {"mkkMemberOidList": [self.company_id], "count": str(count)}
