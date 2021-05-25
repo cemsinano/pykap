@@ -37,6 +37,14 @@ class BISTCompany(object):
         return json.loads(response.text)
 
     def get_historical_disclosure_list(self, fromdate = datetime.today().date() - timedelta(days = 365), todate=datetime.today().date(),disclosure_type="FR", subject ="4028328c594bfdca01594c0af9aa0057"):
+        """ Get historical disclosure list.
+        args:
+            ...
+            subject (str):
+                4028328d594c04f201594c5155dd0076 is "faliyet raporu"
+                4028328c594bfdca01594c0af9aa0057 is 'finansal rapor'
+
+        """
         data = {
             "fromDate": str(fromdate),
             "toDate": str(todate),
@@ -58,7 +66,7 @@ class BISTCompany(object):
 
     def get_financial_reports(self):
         fin_reports = dict()
-        disclosurelist = self.get_historical_disclosure_list()
+        disclosurelist = self.get_historical_disclosure_list()  # subject has FINANCIAL REPORT as default FOR NOW!!!
         for disclosure in disclosurelist:
             period = str(disclosure['year']) + disclosure['ruleTypeTerm'].replace(" ", "")
             # fin_reports['period'] = str(disclosure['year']) + disclosure['ruleTypeTerm'].replace(" ", "")
@@ -159,3 +167,41 @@ class BISTCompany(object):
                 return pd.DataFrame.to_dict(df)[colName]
 
 
+    def save_operating_review(self):
+        #self.__path=path # for now save to the current directory
+        oper_reports = dict()
+        disclist = self.get_historical_disclosure_list(subject="4028328d594c04f201594c5155dd0076")
+        for disclosure in disclist:
+            period = str(disclosure['year']) + disclosure['ruleTypeTerm'].replace(" ", "")
+            self.__orperiod = period
+            # fin_reports['period'] = str(disclosure['year']) + disclosure['ruleTypeTerm'].replace(" ", "")
+            oper_reports[period] = dict()
+            oper_reports[period]['year'] = disclosure['year']
+            oper_reports[period]['term'] = disclosure['ruleTypeTerm']
+            oper_reports[period]['disc_ind'] = disclosure['disclosureIndex']
+            self.__announcement_no = oper_reports[period]['disc_ind']
+            oper_reports[period]['filename'] = self._save_operating_report_file()
+        self.operating_reports = oper_reports
+        self.__announcement_no = None
+
+
+    def _save_operating_report_file(self,lang='tr'):
+        anurl = "https://www.kap.org.tr/"+ lang +"/Bildirim/" + str(self.__announcement_no)
+
+        r = requests.get(anurl)
+        soup = BeautifulSoup(r.text, 'html5lib')
+        pdf_report_link = soup.select('a.modal-attachment.type-xsmall.bi-sky-black.maximize')
+        url = 'https://www.kap.org.tr' + pdf_report_link[0]['href']
+
+        with requests.Session() as req:
+            r = req.get(url)
+            if r.status_code == 200 and r.headers['Content-Type'] == "application/pdf":
+                name = self.name.replace(' ', '').replace('.','') + "_" + self.__orperiod
+
+                #name = r.url[name:]
+                print(f"Saving {name}.pdf")
+                file_name = name+'.pdf'
+                with open(f"{name}", 'wb') as f:
+                    f.write(r.content)
+                print(f"Saved to the current directory.")
+                return file_name

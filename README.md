@@ -61,5 +61,15 @@ comp.get_expected_disclosure_list(count=10)
 ##### Get Historical Disclosures List:
 
 ```python
-comp.get_historical_disclosure_list(fromdate = "2020-05-21", todate="2021-05-21",disclosure_type="FR")
+# "4028328c594bfdca01594c0af9aa0057" #for 'finansal rapor'
+report_type="4028328d594c04f201594c5155dd0076" #for "faliyet raporu"       
+comp.get_historical_disclosure_list(fromdate = "2020-05-21", todate="2021-05-21",disclosure_type="FR", subject=report_type)
 ```
+
+##### Save Operating Review Report PDF File:
+
+```python
+cmp.save_operating_review()
+```
+
+Check your current directory for saved pdf document.
