@@ -4,3 +4,4 @@ pandas
 datetime
 requests
 regex
+html5lib
