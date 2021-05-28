@@ -2,3 +2,5 @@ setuptools
 bs4
 pandas
 datetime
+requests
+regex
