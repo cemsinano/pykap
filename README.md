@@ -11,7 +11,7 @@ pip install pykap # currently not an option
 
 From the repository:
 ```sh
-pip install git+https://gitlab.com/cemsinan/PyKap.git
+pip install git+https://github.com/cemsinano/PyKap.git
 ```
 
 
