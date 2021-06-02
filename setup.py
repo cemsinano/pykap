@@ -1,14 +1,18 @@
 import setuptools
+import os
+import io
 
 with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
-with open("requirements.txt", "r", encoding="utf-8") as f:
+here = os.path.abspath(os.path.dirname(__file__))
+
+with io.open(os.path.join(here, 'requirements.txt'), encoding='utf-8') as f:
     install_require = [x.strip() for x in f if x.strip()]
 
 setuptools.setup(
     name="pykap",
-    version="0.0.1",
+    version="0.0.2",
     author="Cem Sinan Ozturk",
     author_email="cemsinanozturk@gmail.com",
     description="KAP (Public Disclosure Platform) Documentation Wrapper for Capital Markets Board of Turkey and Borsa Istanbul Public Disclosures",
