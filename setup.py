@@ -5,10 +5,7 @@ import io
 with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
-here = os.path.abspath(os.path.dirname(__file__))
-
-with io.open(os.path.join(here, 'requirements.txt'), encoding='utf-8') as f:
-    install_require = [x.strip() for x in f if x.strip()]
+install_required = ['bs4','pandas','requests','regex','html5lib']
 
 setuptools.setup(
     name="pykap",
@@ -19,7 +16,7 @@ setuptools.setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/cemsinano/pykap",
-    install_requires = install_require,
+    install_requires = install_required,
     project_urls={
         "Bug Tracker": "https://github.com/cemsinano/pykap/issues",
     },
