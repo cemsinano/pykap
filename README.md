@@ -73,4 +73,4 @@ comp.get_historical_disclosure_list(fromdate = "2020-05-21", todate="2021-05-21"
 cmp.save_operating_review(output_dir='OperatingReviews')
 ```
 
-Check the `output_dir` directory for saved pdf document.
+Check the self-specified `output_dir` directory for saved pdf document.
