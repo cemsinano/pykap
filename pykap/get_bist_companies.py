@@ -35,8 +35,8 @@ for firm in all_firms:
     firms_dict[ticker]['city'] = city
     auditor = firm.select('div.comp-cell._11.vtable a.vcell')[0].text
     firms_dict[ticker]['auditor'] = auditor
-    
-pd.DataFrame.from_dict(firms_dict,orient = 'index') 
+
+pd.DataFrame.from_dict(firms_dict,orient = 'index')
 '''
 
 def _get_bist_companies(output_format = 'pandas_df', add_company_id = False, local_jsoncopy = False):
@@ -85,29 +85,10 @@ def _get_bist_companies(output_format = 'pandas_df', add_company_id = False, loc
     elif (output_format == 'dict'):
         return companies_dict['companies']
 
-    #except:
-    #    print("An exception occurred")
+
 
 def get_mkkMemberOid(surl):
     g = requests.get(url=surl)
     soup = BeautifulSoup(g.text, 'html5lib')
     cid = soup.select('img.comp-logo')[0]['src'].split('/')[-1]
     return cid
-
-
-
-
-
-# def bist_company_list():
-#     c_dict = get_bist_companies(output_format='dict')
-#     #print(c_dict)
-#     ticker_list = [c['ticker'] for c in c_dict]
-#     return ticker_list
-#
-# def get_general_info(tick):
-#     tick_list = bist_company_list() # save it don't call again and again...
-#     c_dict = get_bist_companies(output_format='dict')
-#     if (tick in tick_list):
-#        return list(filter(lambda d: d['ticker'] in [tick], c_dict))[0]
-
-
