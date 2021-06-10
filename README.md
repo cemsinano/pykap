@@ -61,8 +61,8 @@ comp.get_expected_disclosure_list(count=10)
 ##### Get Historical Disclosures List:
 
 ```python
-# "4028328c594bfdca01594c0af9aa0057" or 'financial report' for financial reports
-# report_type="4028328d594c04f201594c5155dd0076" or "operation report" for operation reports  
+# report_type: "4028328c594bfdca01594c0af9aa0057" or 'financial report' for financial reports
+# report_type: "4028328d594c04f201594c5155dd0076" or "operation report" for operation reports  
 report_type="operating report"
 comp.get_historical_disclosure_list(fromdate = "2020-05-21", todate="2021-05-21",disclosure_type="FR", subject=report_type)
 ```
