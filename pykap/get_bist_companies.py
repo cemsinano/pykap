@@ -97,6 +97,7 @@ def get_mkkMemberOid(surl):
 
 
 
+
 # def bist_company_list():
 #     c_dict = get_bist_companies(output_format='dict')
 #     #print(c_dict)

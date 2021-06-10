@@ -4,10 +4,8 @@ import pandas as pd
 def bist_company_list(online=False):
     if online:
         c_dict = get_bist_companies(online = True, output_format='dict')
-        #print(c_dict)
     else:
         c_dict = get_bist_companies(online = False,output_format='dict')
-        #get_bist_companies(online=False,)
         #pd.read_json("./pykap/data/bist_companies_general.json")
 
     ticker_list = [c['ticker'] for c in c_dict]

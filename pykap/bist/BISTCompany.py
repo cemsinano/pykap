@@ -203,3 +203,4 @@ class BISTCompany(object):
                     f.write(r.content)
                 print(f"Saved to the current directory.")
                 return file_name
+
