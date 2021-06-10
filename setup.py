@@ -9,7 +9,7 @@ install_required = ['bs4','pandas','requests','regex','html5lib']
 
 setuptools.setup(
     name="pykap",
-    version="0.0.2.1",
+    version="0.0.2.2",
     author="Cem Sinan Ozturk",
     author_email="cemsinanozturk@gmail.com",
     description="KAP (Public Disclosure Platform) Documentation Wrapper for Capital Markets Board of Turkey and Borsa Istanbul Public Disclosures",

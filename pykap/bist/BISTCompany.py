@@ -8,6 +8,7 @@ from bs4 import BeautifulSoup
 import regex as re
 import pandas as pd
 from datetime import datetime,timedelta
+import os
 
 
 
@@ -27,6 +28,8 @@ class BISTCompany(object):
         self.auditor = general_info['auditor']
         self.company_id = general_info['company_id']
         self.financial_reports = dict()
+        self.output_dir = None
+
 
 
     def get_expected_disclosure_list(self, count=5):
@@ -34,15 +37,23 @@ class BISTCompany(object):
         response = requests.post(url="https://www.kap.org.tr/tr/api/memberExpectedDisclosure", json=data)
         return json.loads(response.text)
 
-    def get_historical_disclosure_list(self, fromdate = datetime.today().date() - timedelta(days = 365), todate=datetime.today().date(),disclosure_type="FR", subject ="4028328c594bfdca01594c0af9aa0057"):
+    def get_historical_disclosure_list(self, fromdate = datetime.today().date() - timedelta(days = 365), todate=datetime.today().date(),disclosure_type="FR", subject = 'financial report'):
         """ Get historical disclosure list.
         args:
             ...
             subject (str):
-                4028328d594c04f201594c5155dd0076 is "faliyet raporu"
-                4028328c594bfdca01594c0af9aa0057 is 'finansal rapor'
+                4028328d594c04f201594c5155dd0076 is 'operating review' "faliyet raporu"
+                4028328c594bfdca01594c0af9aa0057 is 'financial report' 'finansal rapor'
 
         """
+        if(subject == '4028328d594c04f201594c5155dd0076' or subject =='operating review'):
+            subjectno = '4028328d594c04f201594c5155dd0076'
+        elif(subject == '4028328c594bfdca01594c0af9aa0057' or subject =='financial report'):
+            subjectno = '4028328c594bfdca01594c0af9aa0057'
+        else:
+            raise ValueError('Provide a valid subject!')
+
+
         data = {
             "fromDate": str(fromdate),
             "toDate": str(todate),
@@ -51,7 +62,7 @@ class BISTCompany(object):
             "bdkReview": "",
             "disclosureClass": disclosure_type,
             "index": "", "market": "",
-            "isLate": "", "subjectList": [subject],
+            "isLate": "", "subjectList": [subjectno],
             "mkkMemberOidList": [self.company_id],
             "inactiveMkkMemberOidList": [],
             "bdkMemberOidList": [],
@@ -165,10 +176,11 @@ class BISTCompany(object):
                 return pd.DataFrame.to_dict(df)[colName]
 
 
-    def save_operating_review(self):
+    def save_operating_review(self, output_dir='OperatingReviews'):
         #self.__path=path # for now save to the current directory
         oper_reports = dict()
         disclist = self.get_historical_disclosure_list(subject="4028328d594c04f201594c5155dd0076")
+        self.output_dir = output_dir
         for disclosure in disclist:
             period = str(disclosure['year']) + disclosure['ruleTypeTerm'].replace(" ", "")
             self.__orperiod = period
@@ -199,8 +211,16 @@ class BISTCompany(object):
                 #name = r.url[name:]
                 print(f"Saving {name}.pdf")
                 file_name = name+'.pdf'
-                with open(f"{name}", 'wb') as f:
+                if self.output_dir == 'OperatingReviews':
+                    outpath = "OperatingReviews"
+                else:
+                    outpath = self.output_dir
+                completeName = os.path.join(outpath, file_name)
+                if not os.path.exists(outpath):
+                    os.makedirs(outpath)
+                with open(f"{completeName}", 'wb') as f:
                     f.write(r.content)
-                print(f"Saved to the current directory.")
+                print(f"Saved to {outpath} directory.")
                 return file_name
+
 
