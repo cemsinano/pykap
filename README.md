@@ -73,7 +73,7 @@ comp.get_historical_disclosure_list(fromdate = "2020-05-21",
 ##### Save Operating Review Report PDF File:
 
 ```python
-cmp.save_operating_review(output_dir='OperatingReviews')
+comp.save_operating_review(output_dir='OperatingReviews')
 ```
 
 Check the self-specified `output_dir` directory for saved pdf document.
