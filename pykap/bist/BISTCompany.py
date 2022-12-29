@@ -73,9 +73,9 @@ class BISTCompany(object):
         response = requests.post(url="https://www.kap.org.tr/tr/api/memberDisclosureQuery", json=data)
         return json.loads(response.text)
 
-    def get_financial_reports(self):
+    def get_financial_reports(self, fromdate = datetime.today().date() - timedelta(days = 365), todate=datetime.today().date()):
         fin_reports = dict()
-        disclosurelist = self.get_historical_disclosure_list()  # subject has FINANCIAL REPORT as default FOR NOW!!!
+        disclosurelist = self.get_historical_disclosure_list(fromdate = fromdate, todate=todate)  # subject has FINANCIAL REPORT as default FOR NOW!!!
         for disclosure in disclosurelist:
             period = str(disclosure['year']) + disclosure['ruleTypeTerm'].replace(" ", "")
             # fin_reports['period'] = str(disclosure['year']) + disclosure['ruleTypeTerm'].replace(" ", "")
@@ -176,10 +176,10 @@ class BISTCompany(object):
                 return pd.DataFrame.to_dict(df)[colName]
 
 
-    def save_operating_review(self, output_dir='OperatingReviews'):
+    def save_operating_review(self, output_dir='OperatingReviews', fromdate = datetime.today().date() - timedelta(days = 365), todate=datetime.today().date()):
         #self.__path=path # for now save to the current directory
         oper_reports = dict()
-        disclist = self.get_historical_disclosure_list(subject="4028328d594c04f201594c5155dd0076")
+        disclist = self.get_historical_disclosure_list(fromdate=fromdate, todate=todate, subject="4028328d594c04f201594c5155dd0076")
         self.output_dir = output_dir
         for disclosure in disclist:
             period = str(disclosure['year']) + disclosure['ruleTypeTerm'].replace(" ", "")
