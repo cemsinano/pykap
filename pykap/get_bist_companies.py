@@ -4,7 +4,6 @@ import json
 import pandas as pd
 import pkgutil
 
-
 def get_bist_companies(online = False,output_format = 'pandas_df', **kwargs):
     if(online==False):
         bist_list = pkgutil.get_data(__name__, "data/bist_companies_general.json")
@@ -17,27 +16,8 @@ def get_bist_companies(online = False,output_format = 'pandas_df', **kwargs):
             elif(output_format=='json'):
                 return json.dumps(data, ensure_ascii=False, indent=4)
     elif(online==True):
-        return _get_bist_companies(output_format = 'pandas_df', **kwargs)
+        return _get_bist_companies(output_format = output_format, **kwargs)
 
-
-
-'''
-firms_dict =dict()
-for firm in all_firms:
-    ticker = firm.select('div.comp-cell._04.vtable a.vcell')[0].text
-    firms_dict[ticker] = {'ticker': ticker}
-    name = firm.select('div.comp-cell._14.vtable a.vcell')[0].text
-    firms_dict[ticker]['name'] = name
-    for link in firm.select('div.comp-cell._04.vtable a.vcell[href]'):
-        summary_page = "https://www.kap.org.tr" + link['href']
-    firms_dict[ticker]['summary_page'] = summary_page
-    city = firm.select('div.comp-cell._12.vtable div.vcell')[0].text
-    firms_dict[ticker]['city'] = city
-    auditor = firm.select('div.comp-cell._11.vtable a.vcell')[0].text
-    firms_dict[ticker]['auditor'] = auditor
-
-pd.DataFrame.from_dict(firms_dict,orient = 'index')
-'''
 
 def _get_bist_companies(output_format = 'pandas_df', add_company_id = False, local_jsoncopy = False):
     """
