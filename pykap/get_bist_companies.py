@@ -77,7 +77,7 @@ def _get_bist_companies(output_format = 'pandas_df', add_company_id = False, loc
             json.dump(companies_dict['companies'], f, ensure_ascii=False, indent=4)
 
     if (output_format == 'pandas_df'):
-        output_companies=pd.read_json(companies_json)
+        output_companies=pd.DataFrame(companies_dict['companies'])
         return output_companies
     elif (output_format == 'json'):
         return companies_json
