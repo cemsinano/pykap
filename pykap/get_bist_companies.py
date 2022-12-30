@@ -17,7 +17,7 @@ def get_bist_companies(online = False,output_format = 'pandas_df', **kwargs):
             elif(output_format=='json'):
                 return json.dumps(data, ensure_ascii=False, indent=4)
     elif(online==True):
-        return _get_bist_companies(**kwargs)
+        return _get_bist_companies(output_format = 'pandas_df', **kwargs)
 
 
 
