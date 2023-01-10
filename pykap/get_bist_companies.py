@@ -4,7 +4,6 @@ import json
 import pandas as pd
 import pkgutil
 
-
 def get_bist_companies(online = False,output_format = 'pandas_df', **kwargs):
     if(online==False):
         bist_list = pkgutil.get_data(__name__, "data/bist_companies_general.json")
@@ -17,27 +16,8 @@ def get_bist_companies(online = False,output_format = 'pandas_df', **kwargs):
             elif(output_format=='json'):
                 return json.dumps(data, ensure_ascii=False, indent=4)
     elif(online==True):
-        return _get_bist_companies(**kwargs)
+        return _get_bist_companies(output_format = output_format, **kwargs)
 
-
-
-'''
-firms_dict =dict()
-for firm in all_firms:
-    ticker = firm.select('div.comp-cell._04.vtable a.vcell')[0].text
-    firms_dict[ticker] = {'ticker': ticker}
-    name = firm.select('div.comp-cell._14.vtable a.vcell')[0].text
-    firms_dict[ticker]['name'] = name
-    for link in firm.select('div.comp-cell._04.vtable a.vcell[href]'):
-        summary_page = "https://www.kap.org.tr" + link['href']
-    firms_dict[ticker]['summary_page'] = summary_page
-    city = firm.select('div.comp-cell._12.vtable div.vcell')[0].text
-    firms_dict[ticker]['city'] = city
-    auditor = firm.select('div.comp-cell._11.vtable a.vcell')[0].text
-    firms_dict[ticker]['auditor'] = auditor
-
-pd.DataFrame.from_dict(firms_dict,orient = 'index')
-'''
 
 def _get_bist_companies(output_format = 'pandas_df', add_company_id = False, local_jsoncopy = False):
     """
@@ -51,21 +31,21 @@ def _get_bist_companies(output_format = 'pandas_df', add_company_id = False, loc
 
     companies_dict = dict({'companies': []})
     for firm in all_firms:
+        #for firm in all_firms:
         temp_dic = dict()
         ticker = firm.select('div.comp-cell._04.vtable a.vcell')[0].text
         temp_dic['ticker'] = ticker
         name = firm.select('div.comp-cell._14.vtable a.vcell')[0].text
         temp_dic['name'] = name
-        for link in firm.select('div.comp-cell._04.vtable a.vcell[href]'):
-            summary_page = "https://www.kap.org.tr" + link['href']
-        temp_dic['summary_page'] = summary_page
+        link = firm.select("div.comp-cell._04.vtable a.vcell")[0]
+        temp_dic['summary_page'] = "https://www.kap.org.tr" + link['href']
         city = firm.select('div.comp-cell._12.vtable div.vcell')[0].text
         temp_dic['city'] = city
         auditor = firm.select('div.comp-cell._11.vtable a.vcell')[0].text
         temp_dic['auditor'] = auditor
 
         if add_company_id:
-            company_id = get_mkkMemberOid(surl=summary_page)
+            company_id = get_mkkMemberOid(temp_dic['summary_page'])
             temp_dic['company_id'] = company_id
 
         companies_dict['companies'].append(temp_dic)
@@ -76,9 +56,8 @@ def _get_bist_companies(output_format = 'pandas_df', add_company_id = False, loc
         with open('./bist_companies_general.json', 'w', encoding='utf-8') as f:
             json.dump(companies_dict['companies'], f, ensure_ascii=False, indent=4)
 
-
     if (output_format == 'pandas_df'):
-        output_companies=pd.read_json(companies_json)
+        output_companies=pd.DataFrame(companies_dict['companies'])
         return output_companies
     elif (output_format == 'json'):
         return companies_json
