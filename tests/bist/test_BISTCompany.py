@@ -54,8 +54,14 @@ def test_init_raises_for_unknown_ticker():
 # ---------------------------------------------------------------------------
 
 def test_get_expected_disclosure_list(thyao):
-    """Should POST to the KAP API and return a list parsed from JSON."""
-    mock_payload = [{'type': 'FR', 'date': '2024-01-01'}]
+    """Should POST to the new KAP expected-disclosure-inquiry endpoint and return a sliced list."""
+    mock_payload = [
+        {'kapTitle': 'TEST', 'ruleTypeTerm': '3 Aylık', 'startDate': '01.04.2026', 'endDate': '11.05.2026', 'subject': 'Finansal Rapor', 'year': 2026},
+        {'kapTitle': 'TEST', 'ruleTypeTerm': 'Yıllık', 'startDate': '01.01.2026', 'endDate': '01.04.2026', 'subject': 'Finansal Rapor', 'year': 2025},
+        {'kapTitle': 'TEST', 'ruleTypeTerm': '9 Aylık', 'startDate': '01.10.2025', 'endDate': '01.01.2026', 'subject': 'Finansal Rapor', 'year': 2025},
+        {'kapTitle': 'TEST', 'ruleTypeTerm': '6 Aylık', 'startDate': '01.07.2025', 'endDate': '01.10.2025', 'subject': 'Finansal Rapor', 'year': 2025},
+        {'kapTitle': 'TEST', 'ruleTypeTerm': '3 Aylık', 'startDate': '01.04.2025', 'endDate': '01.07.2025', 'subject': 'Finansal Rapor', 'year': 2025},
+    ]
     mock_response = MagicMock()
     mock_response.text = json.dumps(mock_payload)
     mock_response.raise_for_status = MagicMock()
@@ -65,10 +71,12 @@ def test_get_expected_disclosure_list(thyao):
 
     mock_post.assert_called_once()
     call_kwargs = mock_post.call_args
+    assert 'expected-disclosure-inquiry/company' in call_kwargs.kwargs['url']
     assert call_kwargs.kwargs['json']['mkkMemberOidList'] == ['abc123']
-    assert call_kwargs.kwargs['json']['count'] == '3'
+    assert 'count' not in call_kwargs.kwargs['json']
     assert isinstance(result, list)
-    assert result[0]['type'] == 'FR'
+    assert len(result) == 3
+    assert result[0]['kapTitle'] == 'TEST'
 
 
 # ---------------------------------------------------------------------------
@@ -76,8 +84,8 @@ def test_get_expected_disclosure_list(thyao):
 # ---------------------------------------------------------------------------
 
 def test_get_historical_disclosure_list(thyao):
-    """Should POST to the KAP API and return a list parsed from JSON."""
-    mock_payload = [{'disclosureIndex': 99, 'year': 2023, 'ruleTypeTerm': 'Yıllık'}]
+    """Should POST to the new disclosure/members/byCriteria endpoint and return a list."""
+    mock_payload = [{'disclosureIndex': 99, 'year': 2023, 'ruleType': 'Yıllık'}]
     mock_response = MagicMock()
     mock_response.text = json.dumps(mock_payload)
     mock_response.raise_for_status = MagicMock()
@@ -86,6 +94,11 @@ def test_get_historical_disclosure_list(thyao):
         result = thyao.get_historical_disclosure_list()
 
     mock_post.assert_called_once()
+    call_kwargs = mock_post.call_args
+    assert 'disclosure/members/byCriteria' in call_kwargs.kwargs['url']
+    assert call_kwargs.kwargs['json']['mkkMemberOidList'] == ['abc123']
+    assert call_kwargs.kwargs['json']['fromSrc'] is False
+    assert 'disclosureIndexList' in call_kwargs.kwargs['json']
     assert isinstance(result, list)
     assert result[0]['disclosureIndex'] == 99
 
@@ -97,7 +110,7 @@ def test_get_historical_disclosure_list(thyao):
 def test_get_financial_reports(thyao):
     """Should build a dict keyed by period using disclosure list and _get_announcement."""
     minimal_disclosures = [
-        {'disclosureIndex': 42, 'year': 2023, 'ruleTypeTerm': 'Yıllık'},
+        {'disclosureIndex': 42, 'year': 2023, 'ruleType': 'Yıllık'},
     ]
     mock_financial_data = {'Nakit': 1000.0, 'Borç': 500.0}
 

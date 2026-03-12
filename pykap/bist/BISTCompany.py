@@ -43,13 +43,14 @@ class BISTCompany(object):
         Returns:
             A list of dicts, each describing an expected disclosure event.
         """
-        data = {"mkkMemberOidList": [self.company_id], "count": str(count)}
+        data = {"mkkMemberOidList": [self.company_id]}
         try:
-            response = requests.post(url="https://www.kap.org.tr/tr/api/memberExpectedDisclosure", json=data, timeout=30)
+            response = requests.post(url="https://www.kap.org.tr/tr/api/expected-disclosure-inquiry/company", json=data, timeout=30)
             response.raise_for_status()
         except requests.RequestException as e:
             raise ConnectionError(f"Failed to fetch expected disclosures for {self.ticker}: {e}")
-        return json.loads(response.text)
+        result = json.loads(response.text)
+        return result[:count] if isinstance(result, list) else result
 
     def get_historical_disclosure_list(
         self,
@@ -87,21 +88,15 @@ class BISTCompany(object):
         data = {
             "fromDate": str(fromdate),
             "toDate": str(todate),
-            "year": "", "prd": "",
-            "term": "", "ruleType": "",
-            "bdkReview": "",
             "disclosureClass": disclosure_type,
-            "index": "", "market": "",
-            "isLate": "", "subjectList": [subjectno],
+            "subjectList": [subjectno],
             "mkkMemberOidList": [self.company_id],
             "inactiveMkkMemberOidList": [],
             "bdkMemberOidList": [],
-            "mainSector": "", "sector": "",
-            "subSector": "", "memberType": "IGS",
-            "fromSrc": "N", "srcCategory": "",
-            "discIndex": []}
+            "fromSrc": False,
+            "disclosureIndexList": []}
         try:
-            response = requests.post(url="https://www.kap.org.tr/tr/api/memberDisclosureQuery", json=data, timeout=30)
+            response = requests.post(url="https://www.kap.org.tr/tr/api/disclosure/members/byCriteria", json=data, timeout=30)
             response.raise_for_status()
         except requests.RequestException as e:
             raise ConnectionError(f"Failed to fetch historical disclosures for {self.ticker}: {e}")
@@ -118,10 +113,11 @@ class BISTCompany(object):
         fin_reports = dict()
         disclosurelist = self.get_historical_disclosure_list()
         for disclosure in disclosurelist:
-            period = str(disclosure['year']) + disclosure['ruleTypeTerm'].replace(" ", "")
+            rule_type_term = disclosure.get('ruleType') or disclosure.get('ruleTypeTerm', '')
+            period = str(disclosure['year']) + rule_type_term.replace(" ", "")
             fin_reports[period] = dict()
             fin_reports[period]['year'] = disclosure['year']
-            fin_reports[period]['term'] = disclosure['ruleTypeTerm']
+            fin_reports[period]['term'] = rule_type_term
             fin_reports[period]['disc_ind'] = disclosure['disclosureIndex']
             self.__announcement_no = fin_reports[period]['disc_ind']
             fin_reports[period]['results'] = self._get_announcement()
@@ -198,17 +194,55 @@ class BISTCompany(object):
                 df = df.replace('', 0)
                 return pd.DataFrame.to_dict(df)[colName]
 
+    VALID_DISCLOSURE_TYPES = {"FAR", "KYUR", "SUR", "KDP", "DEG", "UNV", "SYI"}
+
+    def get_disclosures(self, disclosure_type: str = "FAR") -> list[dict]:
+        """Fetch disclosures of a given type for this company from KAP.
+
+        Args:
+            disclosure_type: Type code. Known values:
+                - 'FAR'  — Faaliyet Raporu (Activity Reports)
+                - 'KYUR' — Corporate Governance Compliance Report
+                - 'SUR'  — Sustainability Compliance Report
+                - 'KDP'  — Dividend Policy
+                - 'DEG'  — Valuation Report
+
+        Returns:
+            List of disclosure dicts, each containing keys from disclosureBasic:
+            title, stockCode, publishDate, disclosureIndex, year, period, summary.
+
+        Raises:
+            ConnectionError: If the KAP API cannot be reached.
+            ValueError: If an invalid disclosure_type is provided.
+        """
+        if disclosure_type not in self.VALID_DISCLOSURE_TYPES:
+            raise ValueError(
+                f"Invalid disclosure_type '{disclosure_type}'. "
+                f"Must be one of: {sorted(self.VALID_DISCLOSURE_TYPES)}"
+            )
+        try:
+            response = requests.get(
+                f"https://www.kap.org.tr/tr/api/company-detail/disclosures/{disclosure_type}/{self.company_id}",
+                timeout=30,
+            )
+            response.raise_for_status()
+        except requests.RequestException as e:
+            raise ConnectionError(
+                f"Failed to fetch {disclosure_type} disclosures for {self.ticker}: {e}"
+            )
+        return [item["disclosureBasic"] for item in response.json()]
+
     def save_operating_review(self) -> None:
         """Download and save all operating review (faaliyet raporu) PDFs for this company to the current directory."""
         oper_reports = dict()
-        disclist = self.get_historical_disclosure_list(fromdate=fromdate, todate=todate, subject="4028328d594c04f201594c5155dd0076")
-        self.output_dir = output_dir
+        disclist = self.get_historical_disclosure_list(subject="4028328d594c04f201594c5155dd0076")
         for disclosure in disclist:
-            period = str(disclosure['year']) + disclosure['ruleTypeTerm'].replace(" ", "")
+            rule_type_term = disclosure.get('ruleType') or disclosure.get('ruleTypeTerm', '')
+            period = str(disclosure['year']) + rule_type_term.replace(" ", "")
             self.__orperiod = period
             oper_reports[period] = dict()
             oper_reports[period]['year'] = disclosure['year']
-            oper_reports[period]['term'] = disclosure['ruleTypeTerm']
+            oper_reports[period]['term'] = rule_type_term
             oper_reports[period]['disc_ind'] = disclosure['disclosureIndex']
             self.__announcement_no = oper_reports[period]['disc_ind']
             oper_reports[period]['filename'] = self._save_operating_report_file()
