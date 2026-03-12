@@ -31,6 +31,8 @@ class BISTCompany(object):
         self.auditor = general_info['auditor']
         self.company_id = general_info['company_id']
         self.financial_reports = dict()
+        self.output_dir = None
+
 
     def get_expected_disclosure_list(self, count: int = 5) -> list:
         """Fetch the list of upcoming expected disclosures for this company.
@@ -74,6 +76,14 @@ class BISTCompany(object):
         Returns:
             A list of dicts, each describing a historical disclosure entry.
         """
+        if(subject == '4028328d594c04f201594c5155dd0076' or subject =='operating review'):
+            subjectno = '4028328d594c04f201594c5155dd0076'
+        elif(subject == '4028328c594bfdca01594c0af9aa0057' or subject =='financial report'):
+            subjectno = '4028328c594bfdca01594c0af9aa0057'
+        else:
+            raise ValueError('Provide a valid subject!')
+
+
         data = {
             "fromDate": str(fromdate),
             "toDate": str(todate),
@@ -82,7 +92,7 @@ class BISTCompany(object):
             "bdkReview": "",
             "disclosureClass": disclosure_type,
             "index": "", "market": "",
-            "isLate": "", "subjectList": [subject],
+            "isLate": "", "subjectList": [subjectno],
             "mkkMemberOidList": [self.company_id],
             "inactiveMkkMemberOidList": [],
             "bdkMemberOidList": [],
@@ -106,7 +116,7 @@ class BISTCompany(object):
             ``results`` (the parsed financial line items).
         """
         fin_reports = dict()
-        disclosurelist = self.get_historical_disclosure_list()  # subject has FINANCIAL REPORT as default FOR NOW!!!
+        disclosurelist = self.get_historical_disclosure_list(fromdate = fromdate, todate=todate)  # subject has FINANCIAL REPORT as default FOR NOW!!!
         for disclosure in disclosurelist:
             period = str(disclosure['year']) + disclosure['ruleTypeTerm'].replace(" ", "")
             # fin_reports['period'] = str(disclosure['year']) + disclosure['ruleTypeTerm'].replace(" ", "")
@@ -192,7 +202,8 @@ class BISTCompany(object):
     def save_operating_review(self) -> None:
         """Download and save all operating review (faaliyet raporu) PDFs for this company to the current directory."""
         oper_reports = dict()
-        disclist = self.get_historical_disclosure_list(subject="4028328d594c04f201594c5155dd0076")
+        disclist = self.get_historical_disclosure_list(fromdate=fromdate, todate=todate, subject="4028328d594c04f201594c5155dd0076")
+        self.output_dir = output_dir
         for disclosure in disclist:
             period = str(disclosure['year']) + disclosure['ruleTypeTerm'].replace(" ", "")
             self.__orperiod = period

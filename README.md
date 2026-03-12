@@ -6,12 +6,12 @@ KAP (Public Disclosure Platform) Documentation Wrapper for Capital Markets Board
 ### Installation
 
 ```sh
-pip install pykap # currently not an option
+pip install pykap
 ```
 
 From the repository:
 ```sh
-pip install git+https://gitlab.com/cemsinan/PyKap.git
+pip install git+https://github.com/cemsinano/PyKap.git
 ```
 
 
@@ -61,15 +61,19 @@ comp.get_expected_disclosure_list(count=10)
 ##### Get Historical Disclosures List:
 
 ```python
-# "4028328c594bfdca01594c0af9aa0057" #for 'finansal rapor'
-report_type="4028328d594c04f201594c5155dd0076" #for "faliyet raporu"       
-comp.get_historical_disclosure_list(fromdate = "2020-05-21", todate="2021-05-21",disclosure_type="FR", subject=report_type)
+# report_type: "4028328c594bfdca01594c0af9aa0057" or 'financial report' for financial reports
+# report_type: "4028328d594c04f201594c5155dd0076" or "operation report" for operation reports  
+report_type="operating report"
+comp.get_historical_disclosure_list(fromdate = "2020-05-21",
+                                    todate="2021-05-21", 
+                                    disclosure_type="FR",
+                                    subject=report_type)
 ```
 
 ##### Save Operating Review Report PDF File:
 
 ```python
-cmp.save_operating_review()
+comp.save_operating_review(output_dir='OperatingReviews')
 ```
 
-Check your current directory for saved pdf document.
+Check the self-specified `output_dir` directory for saved pdf document.
