@@ -1,7 +1,4 @@
-setuptools
-bs4
+beautifulsoup4
 pandas
-datetime
 requests
-regex
 html5lib

@@ -1,47 +1,78 @@
-###from pykap.pykap import get_general_info ### ??????
+from __future__ import annotations
 
-#import pykap.get_general_info as ggi
+import datetime
+
 from pykap.get_general_info import get_general_info
 import requests
 import json
 from bs4 import BeautifulSoup
-import regex as re
+import re
 import pandas as pd
-from datetime import datetime,timedelta
-
-
+from datetime import datetime as _datetime, timedelta
 
 
 class BISTCompany(object):
-    """
-    BIST Company class to store company related fields.
+    """Represents a BIST-listed company and wraps KAP API calls.
+
+    Fetches company metadata from the KAP (Public Disclosure Platform) API on
+    initialisation and exposes methods for retrieving disclosure lists,
+    financial reports, and operating-review PDFs for that company.
     """
 
-    def __init__(self, ticker):
+    def __init__(self, ticker: str) -> None:
+        """Initialize BISTCompany by fetching company metadata from KAP for the given ticker."""
         self.ticker = ticker
-        #self._get_general_info()
         general_info = get_general_info(tick=self.ticker)
-        self.name=general_info['name']
+        if general_info is None:
+            raise ValueError(f"Ticker '{ticker}' not found in BIST company list.")
+        self.name = general_info['name']
         self.summary_page = general_info['summary_page']
         self.city = general_info['city']
         self.auditor = general_info['auditor']
         self.company_id = general_info['company_id']
         self.financial_reports = dict()
 
+    def get_expected_disclosure_list(self, count: int = 5) -> list:
+        """Fetch the list of upcoming expected disclosures for this company.
 
-    def get_expected_disclosure_list(self, count=5):
+        Args:
+            count: Number of expected disclosures to retrieve.
+
+        Returns:
+            A list of dicts, each describing an expected disclosure event.
+        """
         data = {"mkkMemberOidList": [self.company_id], "count": str(count)}
-        response = requests.post(url="https://www.kap.org.tr/tr/api/memberExpectedDisclosure", json=data)
+        try:
+            response = requests.post(url="https://www.kap.org.tr/tr/api/memberExpectedDisclosure", json=data, timeout=30)
+            response.raise_for_status()
+        except requests.RequestException as e:
+            raise ConnectionError(f"Failed to fetch expected disclosures for {self.ticker}: {e}")
         return json.loads(response.text)
 
-    def get_historical_disclosure_list(self, fromdate = datetime.today().date() - timedelta(days = 365), todate=datetime.today().date(),disclosure_type="FR", subject ="4028328c594bfdca01594c0af9aa0057"):
-        """ Get historical disclosure list.
-        args:
-            ...
-            subject (str):
-                4028328d594c04f201594c5155dd0076 is "faliyet raporu"
-                4028328c594bfdca01594c0af9aa0057 is 'finansal rapor'
+    def get_historical_disclosure_list(
+        self,
+        fromdate: datetime.date = _datetime.today().date() - timedelta(days=365),
+        todate: datetime.date = _datetime.today().date(),
+        disclosure_type: str = "FR",
+        subject: str = "4028328c594bfdca01594c0af9aa0057",
+    ) -> list:
+        """Fetch the historical disclosure list for this company.
 
+        Args:
+            fromdate: Start date of the query window (inclusive).
+            todate: End date of the query window (inclusive).
+            disclosure_type: KAP disclosure class code (e.g. ``"FR"`` for
+                financial reports).
+            subject: UUID identifying the disclosure subject on KAP.
+                Known values:
+
+                - ``"4028328c594bfdca01594c0af9aa0057"`` — finansal rapor
+                  (financial report)
+                - ``"4028328d594c04f201594c5155dd0076"`` — faaliyet raporu
+                  (operating review)
+
+        Returns:
+            A list of dicts, each describing a historical disclosure entry.
         """
         data = {
             "fromDate": str(fromdate),
@@ -59,10 +90,21 @@ class BISTCompany(object):
             "subSector": "", "memberType": "IGS",
             "fromSrc": "N", "srcCategory": "",
             "discIndex": []}
-        response = requests.post(url="https://www.kap.org.tr/tr/api/memberDisclosureQuery", json=data)
+        try:
+            response = requests.post(url="https://www.kap.org.tr/tr/api/memberDisclosureQuery", json=data, timeout=30)
+            response.raise_for_status()
+        except requests.RequestException as e:
+            raise ConnectionError(f"Failed to fetch historical disclosures for {self.ticker}: {e}")
         return json.loads(response.text)
 
-    def get_financial_reports(self):
+    def get_financial_reports(self) -> dict:
+        """Fetch and parse all available financial report data for this company.
+
+        Returns:
+            A dict keyed by period string (e.g. ``'2023Yıllık'``), where each
+            value is a dict containing ``year``, ``term``, ``disc_ind``, and
+            ``results`` (the parsed financial line items).
+        """
         fin_reports = dict()
         disclosurelist = self.get_historical_disclosure_list()  # subject has FINANCIAL REPORT as default FOR NOW!!!
         for disclosure in disclosurelist:
@@ -78,46 +120,27 @@ class BISTCompany(object):
         self.__announcement_no = None
         return fin_reports
 
-    def _get_announcement(self, announcement_no ='846388' ,lang='tr'):
-        anurl = "https://www.kap.org.tr/"+ lang +"/Bildirim/" + str(self.__announcement_no)
+    def _get_announcement(self, lang: str = 'tr') -> dict | None:
+        """Parse financial statement data from a KAP announcement page.
 
-        r = requests.get(anurl)
-        #s = BeautifulSoup(r.text, 'html5lib')
-        #all_firms = s.find_all(class_='w-clearfix w-inline-block comp-row')
+        Args:
+            lang: Language code used in the KAP URL (default ``'tr'``).
 
-        #r = requests.get('https://www.kap.org.tr/tr/Bildirim/846388')
+        Returns:
+            A dict mapping line item names to their values, or ``None`` if the
+            announcement page does not contain a financial report.
+        """
+        anurl = "https://www.kap.org.tr/" + lang + "/Bildirim/" + str(self.__announcement_no)
+
+        try:
+            r = requests.get(anurl, timeout=30)
+            r.raise_for_status()
+        except requests.RequestException as e:
+            raise ConnectionError(f"Failed to fetch announcement {self.__announcement_no}: {e}")
         soup = BeautifulSoup(r.text, 'html5lib')
-        #soup = BeautifulSoup(currPage.text, 'html.parser')
 
         for part in soup.find_all('h1'):
             if re.search("Finansal Rapor.*", part.text):
-                #reportType = "Finansal Rapor"
-                #stockName = soup.find('div', {"class": "type-medium type-bold bi-sky-black"})
-                #stockCode = soup.find('div', {"class": "type-medium bi-dim-gray"})
-                #year = ""
-                #period = ""
-
-                '''
-                for p in soup.find_all('div', {"class": "w-col w-col-3 modal-briefsumcol"}):
-                    for y in p.find_all('div', {"type-small bi-lightgray"}):
-                        if y.text == "Yıl":
-                            year = y.find_next('div').text
-                            #print("year: ", year)
-                        if y.text == "Periyot":
-                            period = y.find_next('div').text
-                            if period == "Yıllık":
-                                period = "12"
-                            elif period == "9 Aylık":
-                                period = "09"
-                            elif period == "6 Aylık":
-                                period = "06"
-                            elif period == "3 Aylık":
-                                period = "03"
-                            #print("period: ", period)
-                '''
-
-
-                #colName = year + period
                 colName = 'col'
                 cols = [colName]
 
@@ -152,6 +175,8 @@ class BISTCompany(object):
                         df.rename(index={i: label}, inplace=True)
 
                         res = EachPart.find('td', {"class": currDataClass})
+                        if res is None:
+                            continue
                         value = res.text
                         value = value.strip(' \n\t')
                         if not lst.__contains__(label):
@@ -164,15 +189,13 @@ class BISTCompany(object):
                 df = df.replace('', 0)
                 return pd.DataFrame.to_dict(df)[colName]
 
-
-    def save_operating_review(self):
-        #self.__path=path # for now save to the current directory
+    def save_operating_review(self) -> None:
+        """Download and save all operating review (faaliyet raporu) PDFs for this company to the current directory."""
         oper_reports = dict()
         disclist = self.get_historical_disclosure_list(subject="4028328d594c04f201594c5155dd0076")
         for disclosure in disclist:
             period = str(disclosure['year']) + disclosure['ruleTypeTerm'].replace(" ", "")
             self.__orperiod = period
-            # fin_reports['period'] = str(disclosure['year']) + disclosure['ruleTypeTerm'].replace(" ", "")
             oper_reports[period] = dict()
             oper_reports[period]['year'] = disclosure['year']
             oper_reports[period]['term'] = disclosure['ruleTypeTerm']
@@ -182,24 +205,40 @@ class BISTCompany(object):
         self.operating_reports = oper_reports
         self.__announcement_no = None
 
+    def _save_operating_report_file(self, lang: str = 'tr') -> str | None:
+        """Download a single operating review PDF and save it to the current directory.
 
-    def _save_operating_report_file(self,lang='tr'):
-        anurl = "https://www.kap.org.tr/"+ lang +"/Bildirim/" + str(self.__announcement_no)
+        Args:
+            lang: Language code used in the KAP URL (default ``'tr'``).
 
-        r = requests.get(anurl)
+        Returns:
+            The filename of the saved PDF, or ``None`` if the file could not be
+            downloaded.
+        """
+        anurl = "https://www.kap.org.tr/" + lang + "/Bildirim/" + str(self.__announcement_no)
+
+        try:
+            r = requests.get(anurl, timeout=30)
+            r.raise_for_status()
+        except requests.RequestException as e:
+            raise ConnectionError(f"Failed to fetch announcement {self.__announcement_no}: {e}")
         soup = BeautifulSoup(r.text, 'html5lib')
         pdf_report_link = soup.select('a.modal-attachment.type-xsmall.bi-sky-black.maximize')
+        if not pdf_report_link:
+            raise ValueError(f"No PDF attachment found for announcement {self.__announcement_no}")
         url = 'https://www.kap.org.tr' + pdf_report_link[0]['href']
 
         with requests.Session() as req:
-            r = req.get(url)
+            r = req.get(url, timeout=30)
             if r.status_code == 200 and r.headers['Content-Type'] == "application/pdf":
-                name = self.name.replace(' ', '').replace('.','') + "_" + self.__orperiod
+                name = self.name.replace(' ', '').replace('.', '') + "_" + self.__orperiod
 
-                #name = r.url[name:]
                 print(f"Saving {name}.pdf")
-                file_name = name+'.pdf'
-                with open(f"{name}", 'wb') as f:
-                    f.write(r.content)
+                file_name = name + '.pdf'
+                try:
+                    with open(f"{name}.pdf", 'wb') as f:
+                        f.write(r.content)
+                except IOError as e:
+                    raise IOError(f"Failed to write PDF file '{file_name}': {e}")
                 print(f"Saved to the current directory.")
                 return file_name
