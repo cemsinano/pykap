@@ -116,10 +116,9 @@ class BISTCompany(object):
             ``results`` (the parsed financial line items).
         """
         fin_reports = dict()
-        disclosurelist = self.get_historical_disclosure_list(fromdate = fromdate, todate=todate)  # subject has FINANCIAL REPORT as default FOR NOW!!!
+        disclosurelist = self.get_historical_disclosure_list()
         for disclosure in disclosurelist:
             period = str(disclosure['year']) + disclosure['ruleTypeTerm'].replace(" ", "")
-            # fin_reports['period'] = str(disclosure['year']) + disclosure['ruleTypeTerm'].replace(" ", "")
             fin_reports[period] = dict()
             fin_reports[period]['year'] = disclosure['year']
             fin_reports[period]['term'] = disclosure['ruleTypeTerm']
