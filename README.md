@@ -1,79 +1,144 @@
 # PyKap
 
-KAP (Public Disclosure Platform) Documentation Wrapper for Capital Markets Board of Turkey and Borsa Istanbul Public Disclosures.
+Python wrapper for [KAP (Kamuyu Aydınlatma Platformu)](https://www.kap.org.tr) — the Public Disclosure Platform for Capital Markets Board of Turkey and Borsa Istanbul (BIST).
 
-
-### Installation
+## Installation
 
 ```sh
 pip install pykap
 ```
 
-From the repository:
-```sh
-pip install git+https://github.com/cemsinano/PyKap.git
-```
+## Features
 
+- List all BIST-listed companies (759+ tickers, bundled or live)
+- Search companies by name or ticker
+- Get company general info (name, city, auditor, company ID)
+- Fetch expected and historical disclosure lists
+- Fetch disclosures by type (activity reports, corporate governance, sustainability, etc.)
+- List available disclosure subjects
+- Parse financial statement data from announcements
+- Download operating review PDFs
 
-### Usage
+---
 
-#### To list all of the BIST Companies
+## Usage
 
-```python
-from pykap.bist_company_list import bist_company_list
-bist_company_list()
-```
-
-#### Get General Info for all of the BIST Companies
-
-```python
-from pykap.get_bist_companies import get_bist_companies
-get_bist_companies(online = False, output_format = 'pandas_df')
-```
-Default output format is pandas df (can be json or dict, as well). 
-
-`online` mode enables to get the most up-to-date company list from KAP's website. 
-However, it takes time to parse. It is suggested to use `online=False`, unless otherwise is necessary.  
-
-
-#### Get General Info for a specific company
+### List all BIST tickers
 
 ```python
-from pykap.get_general_info import get_general_info
-get_general_info(tick='AKBNK')
+import pykap
+
+tickers = pykap.bist_company_list()
+# ['A1CAP', 'A1YEN', 'ACSEL', ...]
 ```
 
-
-#### BISTCompany Class:
+### Get company list
 
 ```python
-from pykap.bist import BISTCompany
-comp = BISTCompany(ticker='BIMAS') # initialize a BISTCompany object
-```
-When A BISTCompany object is initialized, some general information attributes (`ticker`, `name`, `summary_page`, `city`, `auditor`) get filled for this company.
+import pykap
 
-##### Get Expected Disclosures List:
+# Offline (bundled data, fast — default)
+df = pykap.get_bist_companies()                          # pandas DataFrame
+companies = pykap.get_bist_companies(output_format='dict')  # list of dicts
+
+# Live from KAP (always up to date)
+df = pykap.get_bist_companies(online=True)
+```
+
+### Search companies by name or ticker
 
 ```python
-comp.get_expected_disclosure_list(count=10)
+import pykap
+
+results = pykap.search_companies("Türk Hava")
+# [{'name': 'TÜRK HAVA YOLLARI A.O.', 'ticker': 'THYAO', 'company_id': '...'}]
+
+results = pykap.search_companies("AKBNK")
 ```
 
-##### Get Historical Disclosures List:
+### Get general info for a specific company
 
 ```python
-# report_type: "4028328c594bfdca01594c0af9aa0057" or 'financial report' for financial reports
-# report_type: "4028328d594c04f201594c5155dd0076" or "operation report" for operation reports  
-report_type="operating report"
-comp.get_historical_disclosure_list(fromdate = "2020-05-21",
-                                    todate="2021-05-21", 
-                                    disclosure_type="FR",
-                                    subject=report_type)
+import pykap
+
+info = pykap.get_general_info(tick='AKBNK')
+# {'ticker': 'AKBNK', 'name': '...', 'city': '...', 'auditor': '...', 'company_id': '...', 'summary_page': '...'}
 ```
 
-##### Save Operating Review Report PDF File:
+### List disclosure subjects
 
 ```python
-comp.save_operating_review(output_dir='OperatingReviews')
+import pykap
+
+# disclosure_class: 'FR' (financial), 'ODA' (material events), 'DG' (other)
+subjects = pykap.get_disclosure_subjects('FR')
+# [{'disclosureClass': 'FR', 'subject': 'Finansal Rapor', 'subjectOid': '...'}, ...]
 ```
 
-Check the self-specified `output_dir` directory for saved pdf document.
+---
+
+### BISTCompany class
+
+```python
+import pykap
+
+comp = pykap.BISTCompany('BIMAS')
+# Attributes: ticker, name, city, auditor, summary_page, company_id
+```
+
+#### Expected disclosures
+
+```python
+comp.get_expected_disclosure_list(count=5)
+```
+
+#### Historical disclosures
+
+```python
+from datetime import date
+
+comp.get_historical_disclosure_list(
+    fromdate=date(2024, 1, 1),
+    todate=date(2025, 1, 1),
+    disclosure_type="FR",           # disclosure class
+    subject="4028328c594bfdca01594c0af9aa0057"  # finansal rapor
+)
+```
+
+Known subject UUIDs:
+- `4028328c594bfdca01594c0af9aa0057` — Finansal Rapor (Financial Report)
+- `4028328d594c04f201594c5155dd0076` — Faaliyet Raporu (Activity Report)
+
+#### Disclosures by type
+
+```python
+# disclosure_type: 'FAR', 'KYUR', 'SUR', 'KDP', 'DEG'
+reports = comp.get_disclosures('FAR')   # Faaliyet Raporu (Activity Reports)
+reports = comp.get_disclosures('KYUR')  # Corporate Governance Compliance
+reports = comp.get_disclosures('SUR')   # Sustainability Reports
+reports = comp.get_disclosures('KDP')   # Dividend Policy
+reports = comp.get_disclosures('DEG')   # Valuation Reports
+
+# Each item: title, stockCode, publishDate, disclosureIndex, year, period, summary
+print(reports[0]['title'], reports[0]['publishDate'])
+```
+
+#### Financial reports (parsed data)
+
+```python
+fin = comp.get_financial_reports()
+# {'2024Yıllık': {'year': 2024, 'term': 'Yıllık', 'disc_ind': ..., 'results': {...}}, ...}
+```
+
+#### Save operating review PDFs
+
+```python
+comp.save_operating_review()
+# Saves PDFs to the current directory
+```
+
+---
+
+## License
+
+MIT © Cem Sinan Ozturk
